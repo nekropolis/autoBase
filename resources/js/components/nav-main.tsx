@@ -6,8 +6,6 @@ import {useKnowledgeFiltersContext} from "@/context/KnowledgeFiltersContext";
 export function NavMain() {
     const { formData, setFormData, brands, models, modifications, handleSearch, resetFilters } = useKnowledgeFiltersContext();
 
-
-
     return (
         <SidebarGroup className="px-2 py-0">
             <div className="grid grid-cols-2 gap-4">

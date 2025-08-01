@@ -6,6 +6,7 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
+import LayoutWithFilters from '@/context/LayoutWithFilters';
 
 const mainNavItems: NavItem[] = [
     {
@@ -44,7 +45,9 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain />
+                <LayoutWithFilters>
+                    <NavMain/>
+                </LayoutWithFilters>
             </SidebarContent>
 
             <SidebarFooter>

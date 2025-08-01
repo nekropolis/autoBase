@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import {router} from "@inertiajs/react";
+import React, {createContext, useContext, useState, useEffect, ReactNode, useRef} from 'react';
+import { router } from "@inertiajs/react";
 
 type KnowledgeFilterData = {
     brand_id: string;
@@ -7,6 +7,7 @@ type KnowledgeFilterData = {
     modification_id: string;
     search_type: string;
     part: string;
+    header: string;
 };
 
 type Item = { id: string; name: string };
@@ -17,59 +18,86 @@ type KnowledgeFiltersContextType = {
     brands: Item[];
     models: Item[];
     modifications: Item[];
-    selectedBrand: Item | null;
-    selectedModel: Item | null;
-    selectedModification: Item | null;
     resetFilters: () => void;
     handleSearch: () => void;
 };
 
 const KnowledgeFiltersContext = createContext<KnowledgeFiltersContextType | undefined>(undefined);
 
-export function KnowledgeFiltersProvider({ children }: { children: ReactNode }) {
+export function KnowledgeFiltersProvider({
+                                             children,
+                                             initialFilters = {},
+                                         }: {
+    children: ReactNode;
+    initialFilters?: Partial<KnowledgeFilterData>;
+}) {
     const [brands, setBrands] = useState<Item[]>([]);
     const [models, setModels] = useState<Item[]>([]);
     const [modifications, setModifications] = useState<Item[]>([]);
+    const prevBrandIdRef = useRef<string | undefined>(undefined);
+    const prevModelIdRef = useRef<string | undefined>(undefined);
 
     const [formData, setFormData] = useState<KnowledgeFilterData>({
-        brand_id: '',
-        model_id: '',
-        modification_id: '',
-        search_type: '',
-        part: '',
+        brand_id: initialFilters.brand_id || '',
+        model_id: initialFilters.model_id || '',
+        modification_id: initialFilters.modification_id || '',
+        search_type: initialFilters.search_type || '',
+        part: initialFilters.part || '',
+        header: initialFilters.header || '',
     });
 
-    // Загрузка брендов при инициализации
     useEffect(() => {
         fetch('/api/brands').then(res => res.json()).then(setBrands);
     }, []);
 
-    // Загрузка моделей при выборе бренда
     useEffect(() => {
         if (formData.brand_id) {
-            fetch(`/api/models?brand_id=${formData.brand_id}`).then(res => res.json()).then(setModels);
+            fetch(`/api/models?brand_id=${formData.brand_id}`)
+                .then(res => res.json())
+                .then(setModels);
         } else {
             setModels([]);
         }
-        // Сбросим модель и модификацию, если бренд изменился
-        setFormData(fd => ({ ...fd, model_id: '', modification_id: '' }));
-        setModifications([]);
+
+        if (prevBrandIdRef.current !== undefined && prevBrandIdRef.current !== formData.brand_id) {
+            setFormData(fd => ({
+                ...fd,
+                model_id: '',
+                modification_id: ''
+            }));
+            setModifications([]);
+        }
+
+        prevBrandIdRef.current = formData.brand_id;
     }, [formData.brand_id]);
 
-    // Загрузка модификаций при выборе модели
     useEffect(() => {
         if (formData.model_id) {
-            fetch(`/api/modifications?model_id=${formData.model_id}`).then(res => res.json()).then(setModifications);
+            fetch(`/api/modifications?model_id=${formData.model_id}`)
+                .then(res => res.json())
+                .then(setModifications);
         } else {
             setModifications([]);
         }
-        // Сброс модификации, если модель изменилась
-        setFormData(fd => ({ ...fd, modification_id: '' }));
+
+        if (prevModelIdRef.current !== undefined && prevModelIdRef.current !== formData.model_id) {
+            setFormData(fd => ({
+                ...fd,
+                modification_id: ''
+            }));
+        }
+
+        prevModelIdRef.current = formData.model_id;
     }, [formData.model_id]);
 
-    const selectedBrand = brands.find(b => String(b.id) === formData.brand_id) ?? null;
-    const selectedModel = models.find(m => String(m.id) === formData.model_id) ?? null;
-    const selectedModification = modifications.find(m => String(m.id) === formData.modification_id) ?? null;
+    useEffect(() => {
+        if (initialFilters.header) {
+            setFormData(fd => ({
+                ...fd,
+                header: initialFilters.header || '',
+            }));
+        }
+    }, [initialFilters.header]);
 
     const resetFilters = () => {
         setFormData({
@@ -78,6 +106,7 @@ export function KnowledgeFiltersProvider({ children }: { children: ReactNode }) 
             modification_id: '',
             search_type: '',
             part: '',
+            header: '',
         });
         setModels([]);
         setModifications([]);
@@ -89,7 +118,6 @@ export function KnowledgeFiltersProvider({ children }: { children: ReactNode }) 
     };
 
     const handleSearch = () => {
-        console.log(modifications, formData.modification_id);
         if (formData.model_id == '') {
             return;
         }
@@ -99,6 +127,7 @@ export function KnowledgeFiltersProvider({ children }: { children: ReactNode }) 
             modification_id: formData.modification_id || '',
             search_type: formData.search_type || '',
             part: formData.part || '',
+            header: formData.header || '',
         }, {
             preserveState: true,
             preserveScroll: true,
@@ -113,9 +142,6 @@ export function KnowledgeFiltersProvider({ children }: { children: ReactNode }) 
                 brands,
                 models,
                 modifications,
-                selectedBrand,
-                selectedModel,
-                selectedModification,
                 resetFilters,
                 handleSearch,
             }}

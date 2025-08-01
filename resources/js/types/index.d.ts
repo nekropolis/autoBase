@@ -43,8 +43,19 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
+interface Post {
+    id: number;
+    title: string;
+    excerpt: string;
+    slug: string;
+    image_url?: string;
+    body: string;
+    tags: { id: number; name: string }[];
+}
+
 interface DashboardProps {
     problems: Problem[];
     instructions: Instruction[];
     filters?: Filters;
+    posts: Post[];
 }

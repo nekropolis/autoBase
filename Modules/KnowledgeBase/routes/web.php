@@ -1,6 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Frontend\KnowledgeController;
+use Modules\KnowledgeBase\Http\Controllers\KnowledgeController;
 
 Route::get('/', [KnowledgeController::class, 'index'])->name('knowledge.index');

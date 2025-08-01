@@ -1,4 +1,5 @@
 {
     "Auto": true,
-    "KnowledgeBase": true
+    "KnowledgeBase": true,
+    "Posts": true
 }
